@@ -2,15 +2,8 @@
 
 #[cfg(test)]
 mod owner_service_tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use ee_vpms_core::service::current_timestamp_millis;
     use uuid::{NoContext, Timestamp, Uuid};
-
-    fn current_timestamp_millis() -> i64 {
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64
-    }
 
     #[test]
     fn test_owner_service_construction() {

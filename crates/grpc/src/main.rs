@@ -1,0 +1,20 @@
+use ee_vpms_grpc::{owner::OwnerGrpcService, OwnerServiceServer};
+use tonic::transport::Server;
+use tracing_subscriber;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt::init();
+
+    let addr = "[::1]:50051".parse()?;
+    let owner_service = OwnerGrpcService;
+
+    tracing::info!("Starting gRPC server on {}", addr);
+
+    Server::builder()
+        .add_service(OwnerServiceServer::new(owner_service))
+        .serve(addr)
+        .await?;
+
+    Ok(())
+}

@@ -1,14 +1,7 @@
 //! Tests for owner service module
 
 use super::*;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-fn current_timestamp_millis() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as i64
-}
+use crate::service::current_timestamp_millis;
 
 #[test]
 fn test_owner_service_namespace() {

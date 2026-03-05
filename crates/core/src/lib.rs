@@ -5,11 +5,11 @@
 //! - Database connection and initialization
 //! - Error types for the application
 //! - Entity definitions (currently Owner entity)
-//! - Business logic services (currently OwnerService)
+//! - Business logic services (service layer with Owner, Pet, etc.)
 
 pub mod db;
 pub mod error;
 pub mod entity;
-pub mod owner_service;
+pub mod service;
 
 pub use error::{Error, Result};

@@ -1,0 +1,17 @@
+[package]
+name = "ee-vpms-grpc"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+tonic = "0.12"
+prost = "0.13"
+ee-vpms-core = { path = "../core" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.12"
