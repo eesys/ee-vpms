@@ -21,3 +21,7 @@ target
 #.idea/
 
 openvpms/
+
+# Added by cargo
+
+/target
