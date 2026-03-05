@@ -2,14 +2,22 @@
 
 #[cfg(test)]
 mod entity_tests {
-    use chrono::Utc;
     use ee_vpms_core::entity::owner;
-    use uuid::Uuid;
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use uuid::{NoContext, Timestamp, Uuid};
+
+    fn current_timestamp_millis() -> i64 {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64
+    }
 
     #[test]
     fn test_owner_entity_full_creation() {
-        let now = Utc::now();
-        let id = Uuid::new_v4().to_string();
+        let now = current_timestamp_millis();
+        let ts = Timestamp::now(NoContext);
+        let id = Uuid::new_v7(ts).to_string();
         let owner = owner::Model {
             id: id.clone(),
             name: "Test Owner".to_string(),
@@ -37,7 +45,7 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_minimal() {
-        let now = Utc::now();
+        let now = current_timestamp_millis();
         let owner = owner::Model {
             id: "minimal-id".to_string(),
             name: "Minimal Owner".to_string(),
@@ -59,7 +67,7 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_clone() {
-        let now = Utc::now();
+        let now = current_timestamp_millis();
         let owner1 = owner::Model {
             id: "id1".to_string(),
             name: "Owner".to_string(),
@@ -80,7 +88,7 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_serde() {
-        let now = Utc::now();
+        let now = current_timestamp_millis();
         let owner = owner::Model {
             id: "test-id".to_string(),
             name: "Serde Test".to_string(),
@@ -106,7 +114,7 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_partial_info() {
-        let now = Utc::now();
+        let now = current_timestamp_millis();
         let owner = owner::Model {
             id: "partial-id".to_string(),
             name: "Partial Owner".to_string(),
@@ -129,8 +137,8 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_timestamp() {
-        let now = Utc::now();
-        let later = Utc::now();
+        let now = current_timestamp_millis();
+        let later = current_timestamp_millis();
 
         let owner = owner::Model {
             id: "time-id".to_string(),
@@ -153,9 +161,11 @@ mod entity_tests {
 
     #[test]
     fn test_owner_entity_id_uniqueness() {
-        let now = Utc::now();
-        let id1 = Uuid::new_v4().to_string();
-        let id2 = Uuid::new_v4().to_string();
+        let now = current_timestamp_millis();
+        let ts1 = Timestamp::now(NoContext);
+        let ts2 = Timestamp::now(NoContext);
+        let id1 = Uuid::new_v7(ts1).to_string();
+        let id2 = Uuid::new_v7(ts2).to_string();
 
         let owner1 = owner::Model {
             id: id1.clone(),

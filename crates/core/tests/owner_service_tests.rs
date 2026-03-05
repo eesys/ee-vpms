@@ -2,8 +2,15 @@
 
 #[cfg(test)]
 mod owner_service_tests {
-    use chrono::Utc;
-    use uuid::Uuid;
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use uuid::{NoContext, Timestamp, Uuid};
+
+    fn current_timestamp_millis() -> i64 {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64
+    }
 
     #[test]
     fn test_owner_service_construction() {
@@ -19,16 +26,17 @@ mod owner_service_tests {
 
     #[test]
     fn test_uuid_generation_in_service_context() {
-        let id = Uuid::new_v4().to_string();
+        let ts = Timestamp::now(NoContext);
+        let id = Uuid::new_v7(ts).to_string();
         assert!(id.len() > 0);
         assert!(id.contains('-'));
     }
 
     #[test]
     fn test_timestamp_creation() {
-        let before = Utc::now();
-        let now = Utc::now();
-        let after = Utc::now();
+        let before = current_timestamp_millis();
+        let now = current_timestamp_millis();
+        let after = current_timestamp_millis();
 
         assert!(before <= now);
         assert!(now <= after);

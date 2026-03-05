@@ -1,4 +1,4 @@
-//! Binary entry point for ee-vpms API
+//! Entry point for ee-vpms API server
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
