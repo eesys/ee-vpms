@@ -1,6 +1,6 @@
 use axum::{Router, routing::*};
 use ee_vpms_owner::pb::owner::owner_service_client::OwnerServiceClient;
-use ee_vpms_shared::{ServiceConfig, ServiceDiscovery};
+use ee_vpms_shared::ResolverFactory;
 use std::sync::Arc;
 use tonic::transport::Channel;
 use tower_http::cors::CorsLayer;
@@ -32,7 +32,7 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let discovery: Box<dyn ServiceDiscovery> = Box::new(ServiceConfig::from_env());
+    let discovery = ResolverFactory::create();
     let owner_addr = discovery
         .discover("owner")
         .ok_or_else(|| anyhow::anyhow!("Owner service not found"))?;
