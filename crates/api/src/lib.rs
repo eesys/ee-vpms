@@ -1,6 +1,5 @@
 use axum::{Router, routing::*};
 use ee_vpms_owner::pb::owner::owner_service_client::OwnerServiceClient;
-use ee_vpms_shared::{ResolverFactory, services};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -34,11 +33,9 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let discovery = ResolverFactory::create_for_service(services::API, "config.toml");
-    let owner_addr = discovery
-        .discover(services::OWNER)
-        .ok_or_else(|| anyhow::anyhow!("Owner service not found"))?;
-    let channel = Channel::from_shared(owner_addr)?.connect().await?;
+    let channel = Channel::from_static("http://localhost:8080")
+        .connect()
+        .await?;
     let owner_client = OwnerServiceClient::new(channel);
     let state = AppState {
         owner_client: Arc::new(owner_client),

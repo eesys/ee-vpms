@@ -1,7 +1,5 @@
 use ee_vpms_owner::grpc::OwnerGrpcService;
 use ee_vpms_owner::pb::owner::owner_service_server::OwnerServiceServer;
-use ee_vpms_shared::get_service_listen_address_with_config;
-use ee_vpms_shared::service::ServiceRegistry;
 use tonic::transport::Server;
 
 #[tokio::main]
@@ -12,16 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = ee_vpms_owner::db::init().await?;
     let owner_service = OwnerGrpcService { db };
 
-    let listen_addr =
-        get_service_listen_address_with_config("owner", "config.toml").ok_or_else(|| {
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "Owner service listen address not configured",
-            )) as Box<dyn std::error::Error>
-        })?;
-
-    let mut registry = ServiceRegistry::new();
-    registry.register("owner", &listen_addr);
+    let listen_addr = "localhost:8080";
 
     let addr = listen_addr.parse()?;
     tracing::info!("Starting microservice: owner on {}", addr);

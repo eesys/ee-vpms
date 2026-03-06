@@ -1,0 +1,8 @@
+name: api
+host: 0.0.0.0
+port: 8888
+owner_rpc:
+  etcd:
+    hosts:
+      - localhost:2379
+    key: owner.rpc
