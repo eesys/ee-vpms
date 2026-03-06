@@ -4,7 +4,7 @@ use super::*;
 
 #[test]
 fn test_owner_service_namespace() {
-    let _service = OwnerService;
+    let _service = OwnerServiceImpl;
     assert!(true);
 }
 
@@ -67,8 +67,8 @@ fn test_multiple_owner_creations() {
 
 #[test]
 fn test_service_idempotence() {
-    let _service1 = OwnerService;
-    let _service2 = OwnerService;
+    let _service1 = OwnerServiceImpl;
+    let _service2 = OwnerServiceImpl;
     assert!(true);
 }
 
@@ -82,7 +82,7 @@ fn test_owner_with_partial_details() {
 
 #[test]
 fn test_owner_service_construction() {
-    let _service = OwnerService;
+    let _service = OwnerServiceImpl;
     assert!(true);
 }
 

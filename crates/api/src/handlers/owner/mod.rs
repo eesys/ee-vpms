@@ -4,8 +4,11 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use ee_vpms_owner::entity::owner;
-use ee_vpms_owner::service::OwnerService;
+use ee_vpms_owner::pb::owner::{
+    CreateOwnerRequest as ProtoCreateOwnerRequest, DeleteOwnerRequest, GetOwnerRequest,
+    ListOwnersRequest, OwnerResponse as ProtoOwnerResponse,
+    UpdateOwnerRequest as ProtoUpdateOwnerRequest,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::AppState;
@@ -29,25 +32,25 @@ pub struct OwnerResponse {
     pub email: Option<String>,
 }
 
-impl From<owner::Model> for OwnerResponse {
-    fn from(owner: owner::Model) -> Self {
-        Self {
-            id: owner.id,
-            name: owner.name,
-            email: owner.email,
-        }
+fn proto_to_response(owner: ProtoOwnerResponse) -> OwnerResponse {
+    OwnerResponse {
+        id: owner.id,
+        name: owner.name,
+        email: owner.email,
     }
 }
 
 pub async fn list_owners(State(state): State<AppState>) -> impl IntoResponse {
-    match OwnerService::list(&state.db).await {
-        Ok(owners) => {
-            let responses: Vec<OwnerResponse> = owners.into_iter().map(Into::into).collect();
-            (
-                StatusCode::OK,
-                Json(serde_json::json!({"owners": responses})),
-            )
-                .into_response()
+    let mut client = state.owner_client.as_ref().clone();
+    match client.list_owners(ListOwnersRequest {}).await {
+        Ok(res) => {
+            let owners: Vec<OwnerResponse> = res
+                .into_inner()
+                .owners
+                .into_iter()
+                .map(proto_to_response)
+                .collect();
+            (StatusCode::OK, Json(serde_json::json!({"owners": owners}))).into_response()
         }
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
@@ -57,9 +60,14 @@ pub async fn create_owner(
     State(state): State<AppState>,
     Json(payload): Json<CreateOwnerRequest>,
 ) -> impl IntoResponse {
-    match OwnerService::create(&state.db, payload.name, payload.email).await {
-        Ok(owner) => {
-            let response: OwnerResponse = owner.into();
+    let mut client = state.owner_client.as_ref().clone();
+    let req = ProtoCreateOwnerRequest {
+        name: payload.name,
+        email: payload.email,
+    };
+    match client.create_owner(req).await {
+        Ok(res) => {
+            let response = proto_to_response(res.into_inner());
             (StatusCode::CREATED, Json(response)).into_response()
         }
         Err(_) => StatusCode::BAD_REQUEST.into_response(),
@@ -67,12 +75,13 @@ pub async fn create_owner(
 }
 
 pub async fn get_owner(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
-    match OwnerService::find_by_id(&state.db, &id).await {
-        Ok(Some(owner)) => {
-            let response: OwnerResponse = owner.into();
+    let mut client = state.owner_client.as_ref().clone();
+    match client.get_owner(GetOwnerRequest { id }).await {
+        Ok(res) => {
+            let response = proto_to_response(res.into_inner());
             (StatusCode::OK, Json(response)).into_response()
         }
-        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(e) if e.code() == tonic::Code::NotFound => StatusCode::NOT_FOUND.into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
@@ -82,12 +91,18 @@ pub async fn update_owner(
     Path(id): Path<String>,
     Json(payload): Json<UpdateOwnerRequest>,
 ) -> impl IntoResponse {
-    match OwnerService::update(&state.db, id, payload.name, payload.email).await {
-        Ok(owner) => {
-            let response: OwnerResponse = owner.into();
+    let mut client = state.owner_client.as_ref().clone();
+    let req = ProtoUpdateOwnerRequest {
+        id,
+        name: payload.name,
+        email: payload.email.flatten(),
+    };
+    match client.update_owner(req).await {
+        Ok(res) => {
+            let response = proto_to_response(res.into_inner());
             (StatusCode::OK, Json(response)).into_response()
         }
-        Err(ee_vpms_owner::Error::NotFound(_)) => StatusCode::NOT_FOUND.into_response(),
+        Err(e) if e.code() == tonic::Code::NotFound => StatusCode::NOT_FOUND.into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }
@@ -96,8 +111,9 @@ pub async fn delete_owner(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    match OwnerService::delete(&state.db, &id).await {
-        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+    let mut client = state.owner_client.as_ref().clone();
+    match client.delete_owner(DeleteOwnerRequest { id }).await {
+        Ok(_) => StatusCode::NO_CONTENT.into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }

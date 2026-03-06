@@ -1,20 +1,20 @@
-use crate::entity::owner as owner_entity;
+use crate::entity;
 use crate::{Error, Result};
 use sea_orm::{DbConn, entity::*};
 use uuid::{NoContext, Timestamp, Uuid};
 use ee_vpms_shared::current_timestamp_millis;
 
-pub struct OwnerService;
+pub struct OwnerServiceImpl;
 
-impl OwnerService {
+impl OwnerServiceImpl {
     pub async fn create(
         db: &DbConn,
         name: String,
         email: Option<String>,
-    ) -> Result<owner_entity::Model> {
+    ) -> Result<entity::Model> {
         let ts = Timestamp::now(NoContext);
         let now_millis = current_timestamp_millis();
-        let owner = owner_entity::ActiveModel {
+        let owner = entity::ActiveModel {
             id: Set(Uuid::new_v7(ts).to_string()),
             name: Set(name),
             email: Set(email),
@@ -29,8 +29,8 @@ impl OwnerService {
             .map_err(|e| Error::Database(e.to_string()))
     }
 
-    pub async fn find_by_id(db: &DbConn, id: &str) -> Result<Option<owner_entity::Model>> {
-        owner_entity::Entity::find_by_id(id)
+    pub async fn find_by_id(db: &DbConn, id: &str) -> Result<Option<entity::Model>> {
+        entity::Entity::find_by_id(id)
             .one(db)
             .await
             .map_err(|e| Error::Database(e.to_string()))
@@ -41,7 +41,7 @@ impl OwnerService {
         id: String,
         name: Option<String>,
         email: Option<Option<String>>,
-    ) -> Result<owner_entity::Model> {
+    ) -> Result<entity::Model> {
         let mut owner = Self::find_by_id(db, &id)
             .await?
             .ok_or_else(|| Error::NotFound("Owner not found".to_string()))?;
@@ -63,15 +63,15 @@ impl OwnerService {
     }
 
     pub async fn delete(db: &DbConn, id: &str) -> Result<()> {
-        owner_entity::Entity::delete_by_id(id)
+        entity::Entity::delete_by_id(id)
             .exec(db)
             .await
             .map_err(|e| Error::Database(e.to_string()))?;
         Ok(())
     }
 
-    pub async fn list(db: &DbConn) -> Result<Vec<owner_entity::Model>> {
-        owner_entity::Entity::find()
+    pub async fn list(db: &DbConn) -> Result<Vec<entity::Model>> {
+        entity::Entity::find()
             .all(db)
             .await
             .map_err(|e| Error::Database(e.to_string()))

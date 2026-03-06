@@ -1,10 +1,10 @@
-use crate::pb::{
+use crate::pb::owner::{
     CreateOwnerRequest, DeleteOwnerRequest, DeleteOwnerResponse, GetOwnerRequest,
     ListOwnersRequest, ListOwnersResponse, OwnerResponse, UpdateOwnerRequest,
     owner_service_server::OwnerService,
 };
-use ee_vpms_owner::entity::owner;
-use ee_vpms_owner::service::OwnerService as CoreOwnerService;
+use crate::entity;
+use crate::service::OwnerServiceImpl;
 use sea_orm::DbConn;
 use tonic::{Request, Response, Status};
 
@@ -12,7 +12,7 @@ pub struct OwnerGrpcService {
     pub db: DbConn,
 }
 
-fn to_owner_response(model: owner::Model) -> OwnerResponse {
+fn to_owner_response(model: entity::Model) -> OwnerResponse {
     OwnerResponse {
         id: model.id,
         name: model.name,
@@ -35,7 +35,7 @@ impl OwnerService for OwnerGrpcService {
         request: Request<CreateOwnerRequest>,
     ) -> Result<Response<OwnerResponse>, Status> {
         let req = request.into_inner();
-        match CoreOwnerService::create(&self.db, req.name, req.email).await {
+        match OwnerServiceImpl::create(&self.db, req.name, req.email).await {
             Ok(model) => Ok(Response::new(to_owner_response(model))),
             Err(_) => Err(Status::internal("Failed to create owner")),
         }
@@ -46,7 +46,7 @@ impl OwnerService for OwnerGrpcService {
         request: Request<GetOwnerRequest>,
     ) -> Result<Response<OwnerResponse>, Status> {
         let req = request.into_inner();
-        match CoreOwnerService::find_by_id(&self.db, &req.id).await {
+        match OwnerServiceImpl::find_by_id(&self.db, &req.id).await {
             Ok(Some(model)) => Ok(Response::new(to_owner_response(model))),
             Ok(None) => Err(Status::not_found("Owner not found")),
             Err(_) => Err(Status::internal("Database error")),
@@ -57,7 +57,7 @@ impl OwnerService for OwnerGrpcService {
         &self,
         _request: Request<ListOwnersRequest>,
     ) -> Result<Response<ListOwnersResponse>, Status> {
-        match CoreOwnerService::list(&self.db).await {
+        match OwnerServiceImpl::list(&self.db).await {
             Ok(models) => {
                 let owners = models.into_iter().map(to_owner_response).collect();
                 Ok(Response::new(ListOwnersResponse { owners }))
@@ -76,7 +76,7 @@ impl OwnerService for OwnerGrpcService {
         } else {
             None
         };
-        match CoreOwnerService::update(&self.db, req.id, req.name, email).await {
+        match OwnerServiceImpl::update(&self.db, req.id, req.name, email).await {
             Ok(model) => Ok(Response::new(to_owner_response(model))),
             Err(_) => Err(Status::internal("Failed to update owner")),
         }
@@ -87,7 +87,7 @@ impl OwnerService for OwnerGrpcService {
         request: Request<DeleteOwnerRequest>,
     ) -> Result<Response<DeleteOwnerResponse>, Status> {
         let req = request.into_inner();
-        match CoreOwnerService::delete(&self.db, &req.id).await {
+        match OwnerServiceImpl::delete(&self.db, &req.id).await {
             Ok(()) => Ok(Response::new(DeleteOwnerResponse { success: true })),
             Err(_) => Err(Status::internal("Failed to delete owner")),
         }

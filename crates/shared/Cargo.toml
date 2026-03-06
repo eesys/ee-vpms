@@ -9,4 +9,4 @@ license.workspace = true
 thiserror = { workspace = true }
 tracing = { workspace = true }
 sea-orm = { workspace = true }
-async-trait = "0.1.89"
+async-trait = { workspace = true }

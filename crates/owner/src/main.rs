@@ -1,4 +1,5 @@
-use ee_vpms_grpc::{OwnerServiceServer, owner::OwnerGrpcService};
+use ee_vpms_owner::pb::owner::owner_service_server::OwnerServiceServer;
+use ee_vpms_owner::grpc::OwnerGrpcService;
 use ee_vpms_shared::service::ServiceRegistry;
 use tonic::transport::Server;
 

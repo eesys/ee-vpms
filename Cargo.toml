@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/shared", "crates/owner", "crates/api", "crates/grpc"]
+members = ["crates/shared", "crates/owner", "crates/api"]
 resolver = "2"
 
 [workspace.package]
@@ -13,16 +13,20 @@ tokio = { version = "1.50.0", features = ["full"] }
 axum = "0.8.8"
 tower = "0.5.3"
 tower-http = { version = "0.6.8", features = ["cors", "trace"] }
+tonic = "0.14.5"
+tonic-prost = "0.14.5"
+prost = "0.14.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 sea-orm = { version = "1.1.19", features = ["sqlx-postgres"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt"] }
-uuid = { version = "1.21.0", features = ["v4", "v7", "serde"] }
+uuid = { version = "1.22.0", features = ["v4", "v7", "serde"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 thiserror = "2.0.18"
 anyhow = "1.0.102"
 dotenvy = "0.15.7"
+async-trait = "0.1.89"
 
 [profile.dev]
 opt-level = 0
