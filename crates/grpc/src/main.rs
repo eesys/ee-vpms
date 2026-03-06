@@ -3,11 +3,13 @@ use tonic::transport::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let addr = "[::1]:50051".parse()?;
-    let owner_service = OwnerGrpcService;
+    let db = ee_vpms_core::db::init().await?;
+    let owner_service = OwnerGrpcService { db };
 
+    let addr = "[::1]:50051".parse()?;
     tracing::info!("Starting gRPC server on {}", addr);
 
     Server::builder()

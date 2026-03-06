@@ -86,10 +86,6 @@ fn test_response_without_email() {
     };
     assert!(resp.email.is_none());
 }
-fn test_status_code_not_found() {
-    let code = StatusCode::NOT_FOUND;
-    assert_eq!(code, StatusCode::NOT_FOUND);
-}
 
 // Multiple items tests
 #[test]

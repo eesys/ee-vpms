@@ -544,8 +544,10 @@ dependencies = [
 name = "ee-vpms-grpc"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "ee-vpms-core",
  "prost",
+ "sea-orm",
  "tokio",
  "tonic",
  "tonic-build",
