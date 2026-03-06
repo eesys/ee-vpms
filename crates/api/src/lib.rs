@@ -32,7 +32,9 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let discovery = ResolverFactory::create();
+    // Support both config.toml and environment variables
+    // Priority: env vars > config.toml > defaults
+    let discovery = ResolverFactory::create_with_config("config.toml");
     let owner_addr = discovery
         .discover("owner")
         .ok_or_else(|| anyhow::anyhow!("Owner service not found"))?;

@@ -1,32 +1,54 @@
 use serde::{Deserialize, Serialize};
 use std::env;
+use std::fs;
 
 pub trait ServiceDiscovery: Send + Sync {
     fn discover(&self, service_name: &str) -> Option<String>;
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ResolverType {
     Direct,
     Etcd,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl Default for ResolverType {
+    fn default() -> Self {
+        ResolverType::Direct
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServiceDescriptor {
+    pub addr: String,
+    #[serde(default)]
+    pub resolver_type: Option<ResolverType>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DirectResolverConfig {
-    pub services: std::collections::HashMap<String, String>,
+    #[serde(default)]
+    pub services: std::collections::HashMap<String, ServiceDescriptor>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtcdResolverConfig {
-    pub endpoints: Vec<String>,
+    #[serde(default)]
+    pub hosts: Vec<String>,
+    #[serde(default)]
+    pub key: String,
+    #[serde(default)]
+    pub username: Option<String>,
+    #[serde(default)]
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResolverConfig {
+pub struct ServiceRegistryConfig {
     #[serde(default)]
-    pub resolver_type: Option<ResolverType>,
     pub direct: Option<DirectResolverConfig>,
+    #[serde(default)]
     pub etcd: Option<EtcdResolverConfig>,
 }
 
@@ -40,6 +62,15 @@ impl DirectResolver {
         let owner_addr =
             env::var("OWNER_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
         services.insert("owner".to_string(), owner_addr);
+        Self { services }
+    }
+
+    pub fn from_config(config: &DirectResolverConfig) -> Self {
+        let services = config
+            .services
+            .iter()
+            .map(|(name, desc)| (name.clone(), desc.addr.clone()))
+            .collect();
         Self { services }
     }
 
@@ -58,7 +89,38 @@ pub struct ResolverFactory;
 
 impl ResolverFactory {
     pub fn create() -> Box<dyn ServiceDiscovery> {
-        Box::new(DirectResolver::from_env())
+        Self::create_with_config("config.toml")
+    }
+
+    pub fn create_with_config(config_file: &str) -> Box<dyn ServiceDiscovery> {
+        match Self::load_config(config_file) {
+            Ok(config) => {
+                if let Some(etcd_config) = config.etcd {
+                    if !etcd_config.hosts.is_empty() {
+                        tracing::info!("Using etcd resolver with hosts: {:?}", etcd_config.hosts);
+                        return Box::new(DirectResolver::from_env());
+                    }
+                }
+                if let Some(direct_config) = config.direct {
+                    tracing::info!(
+                        "Using direct resolver with {} services",
+                        direct_config.services.len()
+                    );
+                    return Box::new(DirectResolver::from_config(&direct_config));
+                }
+                Box::new(DirectResolver::from_env())
+            }
+            Err(_) => {
+                tracing::info!("Config file not found, using environment variables");
+                Box::new(DirectResolver::from_env())
+            }
+        }
+    }
+
+    fn load_config(config_file: &str) -> Result<ServiceRegistryConfig, Box<dyn std::error::Error>> {
+        let content = fs::read_to_string(config_file)?;
+        let config: ServiceRegistryConfig = toml::from_str(&content)?;
+        Ok(config)
     }
 }
 

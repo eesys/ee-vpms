@@ -1,0 +1,21 @@
+# Service Registry Configuration (go-zero style, TOML format)
+# This file configures service discovery for the ee-vpms system
+
+# Direct resolver configuration (static addresses)
+[direct]
+
+[direct.services.owner]
+addr = "http://[::1]:50051"
+resolver_type = "direct"
+
+[direct.services.tenant]
+addr = "http://[::1]:50052"
+resolver_type = "direct"
+
+# Etcd resolver configuration (dynamic service discovery)
+# Uncomment and configure to use etcd for service discovery
+# [etcd]
+# hosts = ["127.0.0.1:2379"]
+# key = "ee-vpms"
+# username = ""
+# password = ""
