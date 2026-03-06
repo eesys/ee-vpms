@@ -514,6 +514,7 @@ dependencies = [
  "chrono",
  "dotenvy",
  "ee-vpms-core",
+ "ee-vpms-shared",
  "sea-orm",
  "serde",
  "serde_json",
@@ -531,6 +532,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "ee-vpms-shared",
  "sea-orm",
  "serde",
  "serde_json",
@@ -546,6 +548,7 @@ version = "0.1.0"
 dependencies = [
  "dotenvy",
  "ee-vpms-core",
+ "ee-vpms-shared",
  "prost",
  "sea-orm",
  "tokio",
@@ -553,6 +556,16 @@ dependencies = [
  "tonic-build",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "ee-vpms-shared"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "sea-orm",
+ "thiserror",
+ "tracing",
 ]
 
 [[package]]

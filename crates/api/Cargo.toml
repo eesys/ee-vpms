@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 ee-vpms-core = { path = "../core" }
+ee-vpms-shared = { path = "../shared" }
 tokio = { workspace = true }
 axum = { workspace = true }
 tower = { workspace = true }
