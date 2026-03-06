@@ -25,5 +25,9 @@ pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
 
+pub mod owner {
+    pub use super::*;
+}
+
 #[cfg(test)]
 mod test;

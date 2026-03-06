@@ -3,8 +3,8 @@ use crate::pb::{
     ListOwnersRequest, ListOwnersResponse, OwnerResponse, UpdateOwnerRequest,
     owner_service_server::OwnerService,
 };
-use ee_vpms_core::service::OwnerService as CoreOwnerService;
-use ee_vpms_core::entity::owner;
+use ee_vpms_owner::entity::owner;
+use ee_vpms_owner::service::OwnerService as CoreOwnerService;
 use sea_orm::DbConn;
 use tonic::{Request, Response, Status};
 

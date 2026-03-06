@@ -4,8 +4,8 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use ee_vpms_core::entity::owner;
-use ee_vpms_core::service::OwnerService;
+use ee_vpms_owner::entity::owner;
+use ee_vpms_owner::service::OwnerService;
 use serde::{Deserialize, Serialize};
 
 use crate::AppState;
@@ -87,7 +87,7 @@ pub async fn update_owner(
             let response: OwnerResponse = owner.into();
             (StatusCode::OK, Json(response)).into_response()
         }
-        Err(ee_vpms_core::Error::NotFound(_)) => StatusCode::NOT_FOUND.into_response(),
+        Err(ee_vpms_owner::Error::NotFound(_)) => StatusCode::NOT_FOUND.into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }

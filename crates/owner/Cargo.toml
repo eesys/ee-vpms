@@ -1,5 +1,5 @@
 [package]
-name = "ee-vpms-core"
+name = "ee-vpms-owner"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

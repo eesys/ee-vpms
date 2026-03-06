@@ -9,7 +9,7 @@ license.workspace = true
 tokio = { workspace = true }
 tonic = "0.12"
 prost = "0.13"
-ee-vpms-core = { path = "../core" }
+ee-vpms-owner = { path = "../owner" }
 ee-vpms-shared = { path = "../shared" }
 sea-orm = { workspace = true }
 tracing = { workspace = true }

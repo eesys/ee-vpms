@@ -6,7 +6,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-ee-vpms-core = { path = "../core" }
+ee-vpms-owner = { path = "../owner" }
 ee-vpms-shared = { path = "../shared" }
 tokio = { workspace = true }
 axum = { workspace = true }

@@ -29,3 +29,24 @@ fn test_internal_error() {
     let err = Error::Internal("unexpected state".to_string());
     assert_eq!(err.to_string(), "Internal server error: unexpected state");
 }
+
+#[test]
+fn test_error_clone() {
+    let err1 = Error::NotFound("Item".to_string());
+    let err2 = err1.clone();
+    assert_eq!(err1, err2);
+}
+
+#[test]
+fn test_error_debug() {
+    let err = Error::Validation("test".to_string());
+    let debug_str = format!("{:?}", err);
+    assert!(debug_str.contains("Validation"));
+}
+
+#[test]
+fn test_db_error_conversion() {
+    let db_err = sea_orm::DbErr::Custom("test db error".to_string());
+    let err: Error = db_err.into();
+    assert!(matches!(err, Error::Database(_)));
+}

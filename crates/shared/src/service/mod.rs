@@ -1,6 +1,14 @@
 use crate::Result;
 use async_trait::async_trait;
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub fn current_timestamp_millis() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64
+}
 
 #[async_trait]
 pub trait Service: Send + Sync {

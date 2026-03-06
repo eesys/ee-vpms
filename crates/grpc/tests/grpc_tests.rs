@@ -1,8 +1,7 @@
 //! Integration tests for owner gRPC service
 
 use ee_vpms_grpc::pb::{
-    CreateOwnerRequest, DeleteOwnerRequest, GetOwnerRequest, ListOwnersRequest,
-    UpdateOwnerRequest,
+    CreateOwnerRequest, DeleteOwnerRequest, GetOwnerRequest, ListOwnersRequest, UpdateOwnerRequest,
 };
 
 #[tokio::test]

@@ -31,7 +31,7 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let db = ee_vpms_core::db::init().await?;
+    let db = ee_vpms_owner::db::init().await?;
     let state = AppState { db: Arc::new(db) };
     let app = create_router(state);
 

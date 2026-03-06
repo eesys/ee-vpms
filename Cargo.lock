@@ -513,7 +513,7 @@ dependencies = [
  "axum 0.8.8",
  "chrono",
  "dotenvy",
- "ee-vpms-core",
+ "ee-vpms-owner",
  "ee-vpms-shared",
  "sea-orm",
  "serde",
@@ -527,7 +527,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "ee-vpms-core"
+name = "ee-vpms-grpc"
+version = "0.1.0"
+dependencies = [
+ "dotenvy",
+ "ee-vpms-owner",
+ "ee-vpms-shared",
+ "prost",
+ "sea-orm",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ee-vpms-owner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -540,22 +556,6 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
-]
-
-[[package]]
-name = "ee-vpms-grpc"
-version = "0.1.0"
-dependencies = [
- "dotenvy",
- "ee-vpms-core",
- "ee-vpms-shared",
- "prost",
- "sea-orm",
- "tokio",
- "tonic",
- "tonic-build",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
