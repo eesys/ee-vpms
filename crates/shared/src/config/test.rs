@@ -64,3 +64,45 @@ fn test_direct_resolver_from_config() {
     let addr = resolver.discover("test");
     assert_eq!(addr, Some("http://test:8080".to_string()));
 }
+
+#[test]
+fn test_get_service_listen_address_with_config() {
+    // Should find config in crates/owner/config.toml
+    let addr = get_service_listen_address_with_config("owner", "config.toml");
+    assert!(addr.is_some());
+    assert_eq!(addr.unwrap(), "http://[::1]:50051");
+}
+
+#[test]
+fn test_get_service_listen_address_with_missing_config() {
+    // With config file that doesn't exist, should fall back to defaults
+    let addr = get_service_listen_address_with_config("owner", "nonexistent.toml");
+    // Should still return the default value via get_service_listen_address
+    assert!(addr.is_some());
+    assert!(addr.unwrap().contains("50051"));
+}
+
+#[test]
+fn test_resolver_factory_create_for_service() {
+    // Test creating resolver for a specific service
+    let discovery = ResolverFactory::create_for_service("owner", "config.toml");
+    // Should have a working discovery instance
+    assert!(discovery.discover("owner").is_some());
+}
+
+#[test]
+fn test_database_config_creation() {
+    let db_config = DatabaseConfig {
+        url: "postgres://localhost/test".to_string(),
+    };
+    assert_eq!(db_config.url, "postgres://localhost/test");
+}
+
+#[test]
+fn test_get_database_url() {
+    // Should find config in crates/owner/config.toml
+    let url = get_database_url("owner", "config.toml");
+    assert!(url.is_ok());
+    let url_str = url.unwrap();
+    assert!(url_str.contains("postgres://"));
+}

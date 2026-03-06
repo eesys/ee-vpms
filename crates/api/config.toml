@@ -1,0 +1,16 @@
+# API Gateway Service Configuration
+# This service routes HTTP requests to microservices
+
+[direct]
+
+[direct.services]
+
+# Dependent services that this API gateway calls
+[direct.services.owner]
+addr = "http://[::1]:50051"
+resolver_type = "direct"
+
+# Add more service dependencies here
+# [direct.services.tenant]
+# addr = "http://[::1]:50052"
+# resolver_type = "direct"

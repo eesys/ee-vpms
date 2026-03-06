@@ -1,6 +1,7 @@
 //! Tests for database module
 
 use super::*;
+use std::env;
 
 #[test]
 fn test_postgres_url_scheme() {

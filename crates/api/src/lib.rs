@@ -1,7 +1,9 @@
 use axum::{Router, routing::*};
 use ee_vpms_owner::pb::owner::owner_service_client::OwnerServiceClient;
-use ee_vpms_shared::ResolverFactory;
+use ee_vpms_shared::{ResolverFactory, services};
+use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::net::TcpListener;
 use tonic::transport::Channel;
 use tower_http::cors::CorsLayer;
 
@@ -32,11 +34,9 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    // Support both config.toml and environment variables
-    // Priority: env vars > config.toml > defaults
-    let discovery = ResolverFactory::create_with_config("config.toml");
+    let discovery = ResolverFactory::create_for_service(services::API, "config.toml");
     let owner_addr = discovery
-        .discover("owner")
+        .discover(services::OWNER)
         .ok_or_else(|| anyhow::anyhow!("Owner service not found"))?;
     let channel = Channel::from_shared(owner_addr)?.connect().await?;
     let owner_client = OwnerServiceClient::new(channel);
@@ -45,8 +45,8 @@ pub async fn run() -> anyhow::Result<()> {
     };
     let app = create_router(state);
 
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3000));
-    let listener = tokio::net::TcpListener::bind(addr).await?;
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let listener = TcpListener::bind(addr).await?;
     tracing::info!("Listening on {}", addr);
 
     axum::serve(listener, app).await?;

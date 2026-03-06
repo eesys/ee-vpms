@@ -1,6 +1,8 @@
+use crate::consts::{defaults, services};
+use config::{Config, Environment, File, FileFormat};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
-use std::fs;
 
 pub trait ServiceDiscovery: Send + Sync {
     fn discover(&self, service_name: &str) -> Option<String>;
@@ -29,7 +31,7 @@ pub struct ServiceDescriptor {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DirectResolverConfig {
     #[serde(default)]
-    pub services: std::collections::HashMap<String, ServiceDescriptor>,
+    pub services: HashMap<String, ServiceDescriptor>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,24 +46,32 @@ pub struct EtcdResolverConfig {
     pub password: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DatabaseConfig {
+    #[serde(default)]
+    pub url: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceRegistryConfig {
     #[serde(default)]
     pub direct: Option<DirectResolverConfig>,
     #[serde(default)]
     pub etcd: Option<EtcdResolverConfig>,
+    #[serde(default)]
+    pub database: Option<DatabaseConfig>,
 }
 
 pub struct DirectResolver {
-    services: std::collections::HashMap<String, String>,
+    services: HashMap<String, String>,
 }
 
 impl DirectResolver {
     pub fn from_env() -> Self {
-        let mut services = std::collections::HashMap::new();
-        let owner_addr =
-            env::var("OWNER_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
-        services.insert("owner".to_string(), owner_addr);
+        let mut services = HashMap::new();
+        let owner_addr = env::var("OWNER_SERVICE_ADDR")
+            .unwrap_or_else(|_| defaults::OWNER_SERVICE_ADDR.to_string());
+        services.insert(services::OWNER.to_string(), owner_addr);
         Self { services }
     }
 
@@ -74,7 +84,7 @@ impl DirectResolver {
         Self { services }
     }
 
-    pub fn new(services: std::collections::HashMap<String, String>) -> Self {
+    pub fn new(services: HashMap<String, String>) -> Self {
         Self { services }
     }
 }
@@ -93,7 +103,11 @@ impl ResolverFactory {
     }
 
     pub fn create_with_config(config_file: &str) -> Box<dyn ServiceDiscovery> {
-        match Self::load_config(config_file) {
+        Self::create_for_service("", config_file)
+    }
+
+    pub fn create_for_service(service_name: &str, config_file: &str) -> Box<dyn ServiceDiscovery> {
+        match Self::load_config_for_service(service_name, config_file) {
             Ok(config) => {
                 if let Some(etcd_config) = config.etcd {
                     if !etcd_config.hosts.is_empty() {
@@ -117,20 +131,111 @@ impl ResolverFactory {
         }
     }
 
-    fn load_config(config_file: &str) -> Result<ServiceRegistryConfig, Box<dyn std::error::Error>> {
-        let content = fs::read_to_string(config_file)?;
-        let config: ServiceRegistryConfig = toml::from_str(&content)?;
-        Ok(config)
+    pub fn load_config(
+        config_file: &str,
+    ) -> Result<ServiceRegistryConfig, Box<dyn std::error::Error>> {
+        Self::load_config_for_service("", config_file)
+    }
+
+    pub fn load_config_for_service(
+        service_name: &str,
+        config_file: &str,
+    ) -> Result<ServiceRegistryConfig, Box<dyn std::error::Error>> {
+        let mut builder = Config::builder().add_source(config::File::from_str(
+            &Self::default_config(),
+            FileFormat::Toml,
+        ));
+
+        let config_path = if !service_name.is_empty() {
+            format!("crates/{}/{}", service_name, config_file)
+        } else {
+            config_file.to_string()
+        };
+
+        builder = builder.add_source(File::new(&config_path, FileFormat::Toml).required(false));
+
+        // Add environment variable overrides: VPMS_{SERVICE}_{KEY}
+        builder = builder.add_source(
+            Environment::with_prefix("VPMS")
+                .try_parsing(true)
+                .separator("_"),
+        );
+
+        let config = builder.build()?;
+        let service_config: ServiceRegistryConfig = config.try_deserialize()?;
+
+        tracing::debug!("Loaded config from: {}", config_path);
+        Ok(service_config)
+    }
+
+    fn default_config() -> String {
+        format!(
+            r#"
+[direct]
+[direct.services]
+
+[direct.services.{}]
+addr = "{}"
+resolver_type = "direct"
+
+[database]
+url = "{}"
+"#,
+            services::OWNER,
+            defaults::OWNER_SERVICE_ADDR,
+            defaults::DEFAULT_DATABASE_URL
+        )
     }
 }
 
 pub fn get_service_listen_address(service_name: &str) -> Option<String> {
     match service_name {
-        "owner" => Some(
-            env::var("OWNER_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string()),
+        name if name == services::OWNER => Some(
+            env::var("OWNER_SERVICE_ADDR")
+                .unwrap_or_else(|_| defaults::OWNER_SERVICE_ADDR.to_string()),
         ),
         _ => None,
     }
+}
+
+pub fn get_service_listen_address_with_config(
+    service_name: &str,
+    config_file: &str,
+) -> Option<String> {
+    // Priority: ENV > config file > defaults
+    if let Ok(addr) = env::var(format!("{}_SERVICE_ADDR", service_name.to_uppercase())) {
+        return Some(addr);
+    }
+
+    if let Ok(config) = ResolverFactory::load_config_for_service(service_name, config_file) {
+        if let Some(direct_config) = config.direct {
+            if let Some(descriptor) = direct_config.services.get(service_name) {
+                return Some(descriptor.addr.clone());
+            }
+        }
+    }
+
+    get_service_listen_address(service_name)
+}
+
+pub fn get_database_url(
+    service_name: &str,
+    config_file: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    // Priority: ENV > config file > defaults
+    if let Ok(url) = env::var("VPMS_DATABASE_URL") {
+        return Ok(url);
+    }
+
+    let config = ResolverFactory::load_config_for_service(service_name, config_file)?;
+
+    if let Some(db_config) = config.database {
+        if !db_config.url.is_empty() {
+            return Ok(db_config.url);
+        }
+    }
+
+    Err("Database URL not configured".into())
 }
 
 #[cfg(test)]
