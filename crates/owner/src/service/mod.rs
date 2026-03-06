@@ -1,17 +1,13 @@
 use crate::entity;
 use crate::{Error, Result};
+use ee_vpms_shared::current_timestamp_millis;
 use sea_orm::{DbConn, entity::*};
 use uuid::{NoContext, Timestamp, Uuid};
-use ee_vpms_shared::current_timestamp_millis;
 
 pub struct OwnerServiceImpl;
 
 impl OwnerServiceImpl {
-    pub async fn create(
-        db: &DbConn,
-        name: String,
-        email: Option<String>,
-    ) -> Result<entity::Model> {
+    pub async fn create(db: &DbConn, name: String, email: Option<String>) -> Result<entity::Model> {
         let ts = Timestamp::now(NoContext);
         let now_millis = current_timestamp_millis();
         let owner = entity::ActiveModel {

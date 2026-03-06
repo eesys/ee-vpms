@@ -1,9 +1,9 @@
+use crate::entity;
 use crate::pb::owner::{
     CreateOwnerRequest, DeleteOwnerRequest, DeleteOwnerResponse, GetOwnerRequest,
     ListOwnersRequest, ListOwnersResponse, OwnerResponse, UpdateOwnerRequest,
     owner_service_server::OwnerService,
 };
-use crate::entity;
 use crate::service::OwnerServiceImpl;
 use sea_orm::DbConn;
 use tonic::{Request, Response, Status};

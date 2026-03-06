@@ -1,8 +1,9 @@
 use axum::{Router, routing::*};
-use std::sync::Arc;
-use tower_http::cors::CorsLayer;
 use ee_vpms_owner::pb::owner::owner_service_client::OwnerServiceClient;
+use ee_vpms_shared::{ServiceConfig, ServiceDiscovery};
+use std::sync::Arc;
 use tonic::transport::Channel;
+use tower_http::cors::CorsLayer;
 
 pub mod handlers;
 
@@ -31,9 +32,11 @@ pub async fn run() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let channel = Channel::from_static("http://[::1]:50051")
-        .connect()
-        .await?;
+    let discovery: Box<dyn ServiceDiscovery> = Box::new(ServiceConfig::from_env());
+    let owner_addr = discovery
+        .discover("owner")
+        .ok_or_else(|| anyhow::anyhow!("Owner service not found"))?;
+    let channel = Channel::from_shared(owner_addr)?.connect().await?;
     let owner_client = OwnerServiceClient::new(channel);
     let state = AppState {
         owner_client: Arc::new(owner_client),
