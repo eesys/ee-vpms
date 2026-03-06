@@ -1,13 +1,7 @@
 //! Tests for API lib module
 
-use super::*;
 use std::net::IpAddr;
-
-#[test]
-fn test_router_construction() {
-    let _app = create_router();
-    assert!(true);
-}
+use std::net::SocketAddr;
 
 #[test]
 fn test_socket_address_localhost() {

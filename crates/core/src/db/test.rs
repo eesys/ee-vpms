@@ -41,9 +41,7 @@ fn test_url_parsing_components() {
 #[test]
 fn test_environment_var_default() {
     let url = env::var("DATABASE_URL")
-        .unwrap_or_else(|_| {
-            "postgres://postgres:postgres@localhost:5432/ee_vpms".to_string()
-        });
+        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/ee_vpms".to_string());
     assert!(url.contains("postgres"));
 }
 

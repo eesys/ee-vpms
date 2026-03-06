@@ -1,9 +1,8 @@
-//! Owner gRPC service implementation
-
-use crate::pb::{owner_service_server::OwnerService, CreateOwnerRequest, GetOwnerRequest, OwnerResponse};
+use crate::pb::{
+    CreateOwnerRequest, GetOwnerRequest, OwnerResponse, owner_service_server::OwnerService,
+};
 use tonic::{Request, Response, Status};
 
-/// Implementation of Owner gRPC service
 pub struct OwnerGrpcService;
 
 #[tonic::async_trait]

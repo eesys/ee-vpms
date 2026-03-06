@@ -1,74 +1,105 @@
-//! Owner API handlers
-//!
-//! This module provides HTTP request handlers for owner-related endpoints.
-//! It includes request/response models and the handler functions.
-
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
+use ee_vpms_core::entity::owner;
+use ee_vpms_core::service::OwnerService;
 use serde::{Deserialize, Serialize};
 
-/// Request payload for creating a new owner
+use crate::AppState;
+
 #[derive(Serialize, Deserialize)]
 pub struct CreateOwnerRequest {
-    /// Owner's full name (required)
     pub name: String,
-    
-    /// Owner's email address (optional)
     pub email: Option<String>,
 }
 
-/// Response payload for owner-related endpoints
+#[derive(Serialize, Deserialize)]
+pub struct UpdateOwnerRequest {
+    pub name: Option<String>,
+    pub email: Option<Option<String>>,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct OwnerResponse {
-    /// Unique owner identifier
     pub id: String,
-    
-    /// Owner's full name
     pub name: String,
-    
-    /// Owner's email address
     pub email: Option<String>,
 }
 
-/// List all owners
-///
-/// Handles GET /owners requests to retrieve all owners.
-/// Currently returns an empty list as a placeholder.
-///
-/// # Returns
-/// JSON response with owners array
-pub async fn list_owners() -> impl IntoResponse {
-    Json(serde_json::json!({"owners": []}))
+impl From<owner::Model> for OwnerResponse {
+    fn from(owner: owner::Model) -> Self {
+        Self {
+            id: owner.id,
+            name: owner.name,
+            email: owner.email,
+        }
+    }
 }
 
-/// Create a new owner
-///
-/// Handles POST /owners requests to create a new owner record.
-/// The request body should contain the owner's name and optional email.
-///
-/// # Arguments
-/// * `payload` - CreateOwnerRequest containing owner details
-///
-/// # Returns
-/// - HTTP 201 Created with the new owner's ID
+pub async fn list_owners(State(state): State<AppState>) -> impl IntoResponse {
+    match OwnerService::list(&state.db).await {
+        Ok(owners) => {
+            let responses: Vec<OwnerResponse> = owners.into_iter().map(Into::into).collect();
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({"owners": responses})),
+            )
+                .into_response()
+        }
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
 pub async fn create_owner(
-    Json(_payload): Json<CreateOwnerRequest>,
+    State(state): State<AppState>,
+    Json(payload): Json<CreateOwnerRequest>,
 ) -> impl IntoResponse {
-    (StatusCode::CREATED, Json(serde_json::json!({"id": ""})))
+    match OwnerService::create(&state.db, payload.name, payload.email).await {
+        Ok(owner) => {
+            let response: OwnerResponse = owner.into();
+            (StatusCode::CREATED, Json(response)).into_response()
+        }
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
+    }
 }
 
-/// Get owner by ID
-///
-/// Handles GET /owners/:id requests to retrieve a specific owner.
-/// Currently returns 404 as a placeholder.
-///
-/// # Arguments
-/// * `id` - Owner's unique identifier
-///
-/// # Returns
-/// - HTTP 200 with owner details if found
-/// - HTTP 404 if owner not found
-pub async fn get_owner(Path(_id): Path<String>) -> impl IntoResponse {
-    StatusCode::NOT_FOUND
+pub async fn get_owner(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
+    match OwnerService::find_by_id(&state.db, &id).await {
+        Ok(Some(owner)) => {
+            let response: OwnerResponse = owner.into();
+            (StatusCode::OK, Json(response)).into_response()
+        }
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
+pub async fn update_owner(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Json(payload): Json<UpdateOwnerRequest>,
+) -> impl IntoResponse {
+    match OwnerService::update(&state.db, id, payload.name, payload.email).await {
+        Ok(owner) => {
+            let response: OwnerResponse = owner.into();
+            (StatusCode::OK, Json(response)).into_response()
+        }
+        Err(ee_vpms_core::Error::NotFound(_)) => StatusCode::NOT_FOUND.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
+pub async fn delete_owner(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    match OwnerService::delete(&state.db, &id).await {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
 }
 
 #[cfg(test)]

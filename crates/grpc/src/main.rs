@@ -1,6 +1,5 @@
-use ee_vpms_grpc::{owner::OwnerGrpcService, OwnerServiceServer};
+use ee_vpms_grpc::{OwnerServiceServer, owner::OwnerGrpcService};
 use tonic::transport::Server;
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

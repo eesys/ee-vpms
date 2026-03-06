@@ -514,6 +514,7 @@ dependencies = [
  "chrono",
  "dotenvy",
  "ee-vpms-core",
+ "sea-orm",
  "serde",
  "serde_json",
  "tokio",
@@ -529,7 +530,6 @@ name = "ee-vpms-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
  "chrono",
  "sea-orm",
  "serde",

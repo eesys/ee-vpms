@@ -2,7 +2,6 @@
 
 use ee_vpms_grpc::owner::OwnerGrpcService;
 use ee_vpms_grpc::pb::{CreateOwnerRequest, GetOwnerRequest};
-use tonic::Request;
 
 #[tokio::test]
 async fn test_owner_grpc_service_exists() {

@@ -24,9 +24,7 @@ mod db_tests {
     fn test_default_database_url() {
         unsafe { env::remove_var("DATABASE_URL") };
         let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| {
-                "postgres://postgres:postgres@localhost:5432/ee_vpms".to_string()
-            });
+            .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/ee_vpms".to_string());
 
         assert!(database_url.contains("postgres"));
     }

@@ -31,7 +31,10 @@ mod error_tests {
     #[test]
     fn test_internal_error() {
         let err = Error::Internal("Something went wrong".to_string());
-        assert_eq!(err.to_string(), "Internal server error: Something went wrong");
+        assert_eq!(
+            err.to_string(),
+            "Internal server error: Something went wrong"
+        );
     }
 
     #[test]

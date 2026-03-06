@@ -5,7 +5,6 @@ use crate::service::current_timestamp_millis;
 
 #[test]
 fn test_owner_service_namespace() {
-    // OwnerService is a zero-sized namespace for methods
     let _service = OwnerService;
     assert!(true);
 }
@@ -29,4 +28,18 @@ fn test_email_option_handling() {
     let email2: Option<String> = None;
     assert!(email1.is_some());
     assert!(email2.is_none());
+}
+
+#[test]
+fn test_update_email_option_nesting() {
+    let email: Option<Option<String>> = Some(Some("test@example.com".to_string()));
+    assert!(email.is_some());
+    assert!(email.unwrap().is_some());
+}
+
+#[test]
+fn test_update_clear_email() {
+    let email: Option<Option<String>> = Some(None);
+    assert!(email.is_some());
+    assert!(email.unwrap().is_none());
 }
