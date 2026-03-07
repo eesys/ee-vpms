@@ -1,6 +1,6 @@
 use crate::entity;
 use crate::{Error, Result};
-use ee_vpms_shared::current_timestamp_millis;
+use ee_vpms_utils::current_timestamp_millis;
 use sea_orm::{DbConn, entity::*};
 use uuid::{NoContext, Timestamp, Uuid};
 

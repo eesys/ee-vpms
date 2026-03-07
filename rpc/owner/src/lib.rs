@@ -4,4 +4,4 @@ pub mod grpc;
 pub mod pb;
 pub mod service;
 
-pub use ee_vpms_shared::error::{Error, Result};
+pub use ee_vpms_utils::error::{Error, Result};
