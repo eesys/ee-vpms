@@ -1,7 +1,7 @@
 name: owner.rpc
 listen_on: localhost:8080
+data_source: "postgres://postgres:Aa123456@localhost:5432/eevpms?sslmode=disable"
 etcd:
   hosts:
   - localhost:2379
   key: owner.rpc
-data_source: "postgres://postgres:Aa123456@localhost:5432/eevpms?sslmode=disable"

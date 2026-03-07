@@ -9,25 +9,26 @@ authors = ["ee-vpms contributors"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
-tokio = { version = "1.50.0", features = ["full"] }
+anyhow = "1.0.102"
+async-trait = "0.1.89"
 axum = "0.8.8"
-tower = "0.5.3"
-tower-http = { version = "0.6.8", features = ["cors", "trace"] }
-tonic = "0.14.5"
-tonic-prost = "0.14.5"
+clap = {version = "4.5.60", features = ["derive"] }
+config = { version = "0.15.19", features = ["yaml"] }
+chrono = { version = "0.4.44", features = ["serde"] }
+dotenvy = "0.15.7"
 prost = "0.14.3"
+sea-orm = { version = "1.1.19", features = ["sqlx-postgres"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-config = { version = "0.15.19", features = ["toml"] }
-sea-orm = { version = "1.1.19", features = ["sqlx-postgres"] }
+thiserror = "2.0.18"
+tonic = "0.14.5"
+tonic-prost = "0.14.5"
+tokio = { version = "1.50.0", features = ["full"] }
+tower = "0.5.3"
+tower-http = { version = "0.6.8", features = ["cors", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt"] }
 uuid = { version = "1.22.0", features = ["v4", "v7", "serde"] }
-chrono = { version = "0.4.44", features = ["serde"] }
-thiserror = "2.0.18"
-anyhow = "1.0.102"
-dotenvy = "0.15.7"
-async-trait = "0.1.89"
 
 [profile.dev]
 opt-level = 0
